@@ -1,63 +1,59 @@
-
 # Student Performance Prediction System
 
-## Project Description
+Data Mining Laboratory prototype (Python · GitHub · Streamlit · Predictive Modeling · SAD).
 
-This project predicts whether students may be
-academically at risk using machine learning.
+## 1. Problem
+A school wants to explore whether historical student records can help flag learners who may need additional
+academic support. The system predicts whether a student is **AT RISK of failing final Mathematics**.
 
-## Dataset
+**Prediction rule:** `G3 < 10` = AT RISK (1); `G3 >= 10` = NOT AT RISK (0).
+`G3` is the target only and is **never** used as an input feature.
 
-UCI Student Performance Dataset
-Mathematics Records.
+> **Responsible use:** classroom demonstration with public, historical data. Predictions are not diagnoses
+> and must not be the sole basis for real student decisions.
 
-## Algorithm
+## 2. Dataset
+UCI Machine Learning Repository - Student Performance (ID 320), **Mathematics** file (`student-mat.csv`, 395 rows).
+https://archive.ics.uci.edu/dataset/320/student+performance
 
-Random Forest Classifier.
+## 3. Project structure
+```
+student-performance-prediction/
+├── train_model.py     # download, preprocess, train Random Forest, evaluate, save model
+├── app.py             # Streamlit app (CSV upload + single-student form)
+├── requirements.txt
+└── README.md
+```
 
-## Prediction Categories
-
-- AT RISK: Final grade below 10
-- NOT AT RISK: Final grade 10 or above
-
-## Technologies Used
-
-- Python
-- Google Colab
-- Pandas
-- Scikit-learn
-- Streamlit
-- GitHub
-
-## Project Files
-
-- train_model.py
-- app.py
-- requirements.txt
-- README.md
-- student_data.csv
-- student_model.pkl
-
-## How to Run
-
-Install dependencies:
-
+## 4. How to run
+```bash
 pip install -r requirements.txt
+python train_model.py        # creates student_data.csv and student_model.pkl
+streamlit run app.py         # opens http://localhost:8501
+```
 
-Train the model:
+## 5. Method
+Remove duplicates → define target (G3 < 10) → drop G3 from features → impute (median / most frequent) →
+scale numeric → one-hot encode categorical → Random Forest (200 trees, balanced class weights) →
+80/20 stratified split → accuracy + classification report.
 
-python train_model.py
+## 6. Results
+See `classification_report.txt` after running `train_model.py`. (Paste your accuracy / recall for AT RISK here.)
 
-Run the application:
+## 7. SAD mapping
+| Stage | In this project |
+|---|---|
+| Problem | Late detection of academic risk |
+| Requirements | Upload CSV, validate columns, predict, display, export |
+| Design | Pipeline: validate → preprocess → model → label; Streamlit UI |
+| Implementation | `train_model.py`, `app.py`, GitHub repo |
+| Testing | Valid CSV, missing-column CSV, single-student form, metrics review |
 
-streamlit run app.py
+## 8. Limitations
+- Trained on one Portuguese secondary-school dataset; may not generalize to other institutions or populations.
+- G1 and G2 (earlier grades) are strong predictors, so the system works best *after* the first two grading periods.
+- Dataset is small (395 rows); results vary with the split.
+- Contains sensitive attributes (sex, family background); risk of bias, so use for support, never for punishment.
 
-## Limitation
-
-The dataset contains historical information
-from Portuguese secondary schools.
-
-The model may not generalize to other
-institutions or populations.
-
-Predictions are for educational purposes only.
+## 9. Author
+Name(s): ________  Section: ________  Date: November 9, 2026
