@@ -1,21 +1,24 @@
 """app.py - Streamlit prototype: Student Performance Prediction System."""
-import io
+from pathlib import Path
+
 import joblib
 import pandas as pd
 import streamlit as st
+
+BASE = Path(__file__).resolve().parent
 
 st.set_page_config(page_title="Student Performance Prediction", page_icon="🎓", layout="wide")
 
 
 @st.cache_resource
 def load_bundle():
-    return joblib.load("student_model.pkl")
+    return joblib.load(BASE / "student_model.pkl")
 
 
 try:
     bundle = load_bundle()
 except FileNotFoundError:
-    st.error("student_model.pkl not found. Run `python train_model.py` first.")
+    st.error(f"student_model.pkl not found in {BASE}. Open a terminal in that folder and run `python train_model.py` first, then refresh this page.")
     st.stop()
 
 model, features, schema, metrics = bundle["model"], bundle["features"], bundle["schema"], bundle["metrics"]

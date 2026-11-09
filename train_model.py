@@ -9,6 +9,7 @@ import json
 import os
 import urllib.request
 import zipfile
+from pathlib import Path
 
 import joblib
 import pandas as pd
@@ -20,6 +21,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
+# Always work inside the folder that contains this script (fixes "file not found" when
+# the terminal is opened in a different folder).
+os.chdir(Path(__file__).resolve().parent)
+
 ZIP_URL = "https://archive.ics.uci.edu/static/public/320/student+performance.zip"
 CSV_PATH = "student_data.csv"
 MODEL_PATH = "student_model.pkl"
@@ -29,7 +34,10 @@ MODEL_PATH = "student_model.pkl"
 # ACTIVITY A - Retrieve and inspect the dataset
 # ------------------------------------------------------------------
 def fetch_math_dataset() -> pd.DataFrame:
-    """Download the UCI zip and return the MATHEMATICS file (student-mat.csv, 395 rows)."""
+    """Return the MATHEMATICS file (student-mat.csv, 395 rows): local copy first, else download."""
+    if os.path.exists("student-mat.csv"):
+        print("Using local student-mat.csv")
+        return pd.read_csv("student-mat.csv", sep=None, engine="python")
     try:
         print("Downloading UCI Student Performance dataset (ID 320)...")
         raw = urllib.request.urlopen(ZIP_URL, timeout=60).read()
@@ -46,9 +54,15 @@ def fetch_math_dataset() -> pd.DataFrame:
         raise FileNotFoundError("student-mat.csv not found inside the downloaded zip")
     except Exception as err:  # fall back to ucimlrepo (as in the lab handout)
         print(f"Direct download failed ({err}). Falling back to ucimlrepo...")
-        from ucimlrepo import fetch_ucirepo
-
-        student = fetch_ucirepo(id=320)
+        try:
+            from ucimlrepo import fetch_ucirepo
+            student = fetch_ucirepo(id=320)
+        except Exception as err2:
+            raise SystemExit(
+                "\nCould not get the dataset (" + str(err2) + ").\n"
+                "Manual fix: download https://archive.ics.uci.edu/dataset/320/student+performance ,\n"
+                "extract student-mat.csv, put it in this folder (" + os.getcwd() + ") and run again."
+            )
         df = pd.concat([student.data.features, student.data.targets], axis=1)
         print("WARNING: ucimlrepo may return the Portuguese records (649 rows), "
               "not Mathematics (395 rows). Check the shape printed below.")
@@ -56,7 +70,7 @@ def fetch_math_dataset() -> pd.DataFrame:
 
 
 if os.path.exists(CSV_PATH):
-    df = pd.read_csv(CSV_PATH)
+    df = pd.read_csv(CSV_PATH, sep=None, engine="python")   # handles , or ; separators
     print(f"Loaded existing {CSV_PATH}")
 else:
     df = fetch_math_dataset()
